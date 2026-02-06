@@ -11,15 +11,23 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
+/**
+ * Controlador principal para el módulo de Alquileres.
+ * Administra el flujo de peticiones GET para visualización y POST para persistencia.
+ * Implementa el patrón MVC utilizando Servlets de Java EE.
+ * * @author Yann Valen
+ */
 @WebServlet("/AlquilerServlet")
 public class AlquilerServlet extends HttpServlet {
 
+    /**
+     * Maneja la obtención de datos para mostrar en la interfaz de gestión.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
         List<Alquiler> lista = new ArrayList<>();
-        // Seleccionamos todo, incluyendo la nueva columna estado_pago
         String sql = "SELECT * FROM alquileres ORDER BY id_alquiler DESC";
 
         try (Connection con = ConexionDB.getConexion();
@@ -34,7 +42,6 @@ public class AlquilerServlet extends HttpServlet {
                 a.setFechaFinEstimada(rs.getDate("fecha_fin_estimada")); 
                 a.setFechaFinReal(rs.getDate("fecha_fin_real"));
                 a.setCostoTotal(rs.getDouble("costo_total"));
-                // ¡IMPORTANTE! Capturamos el estado de la DB
                 a.setEstadoPago(rs.getString("estado_pago")); 
                 lista.add(a);
             }
@@ -43,11 +50,14 @@ public class AlquilerServlet extends HttpServlet {
             request.getRequestDispatcher("gestiondealquileres.jsp").forward(request, response);
             
         } catch (SQLException e) { 
-            e.printStackTrace();
-            response.getWriter().println("Error en la DB: " + e.getMessage());
+            request.setAttribute("error", e.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
     }
 
+    /**
+     * Gestiona el registro de nuevos contratos procesando datos de formulario.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -56,6 +66,7 @@ public class AlquilerServlet extends HttpServlet {
 
         try (Connection con = ConexionDB.getConexion()) {
             if ("registrar".equals(accion)) {
+                // Captura de parámetros con estándar de validación básico
                 int idCliente = Integer.parseInt(request.getParameter("id_cliente"));
                 String fInicio = request.getParameter("fecha_inicio");
                 String fFinEst = request.getParameter("fecha_fin_estimada");
@@ -64,7 +75,6 @@ public class AlquilerServlet extends HttpServlet {
                 String nombreCliente = request.getParameter("nombre_cliente"); 
                 String direccionObra = request.getParameter("direccion_obra");
 
-                // No insertamos estado_pago para que MySQL use el DEFAULT 'PENDIENTE'
                 String sqlInsert = "INSERT INTO alquileres (id_cliente, fecha_inicio, fecha_fin_estimada, costo_total) VALUES (?, ?, ?, ?)";
                 
                 try (PreparedStatement ps = con.prepareStatement(sqlInsert)) {
@@ -74,6 +84,7 @@ public class AlquilerServlet extends HttpServlet {
                     ps.setDouble(4, costo);
                     
                     if (ps.executeUpdate() > 0) {
+                        // Invocación lógica a DAO secundario para ubicación automática
                         UbicacionDAO uDao = new UbicacionDAO();
                         uDao.insertarAutomatico(nombreCliente, direccionObra, Date.valueOf(fInicio), Date.valueOf(fFinEst));
                     }
@@ -81,8 +92,7 @@ public class AlquilerServlet extends HttpServlet {
             }
             response.sendRedirect("AlquilerServlet");
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("AlquilerServlet?error=true");
+            response.sendRedirect("AlquilerServlet?status=error");
         }
     }
 }
