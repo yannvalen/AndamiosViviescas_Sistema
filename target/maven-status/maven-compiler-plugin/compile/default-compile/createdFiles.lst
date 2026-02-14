@@ -15,6 +15,7 @@ com\gestionandamios\modelo\Ubicacion.class
 com\gestionandamios\controller\DetalleAlquilerServlet.class
 com\gestionandamios\dao\SeccionesAndamioDAO.class
 com\gestionandamios\controller\EliminarAlquilerServlet.class
+com\gestionandamios\controller\LoginAPIServlet.class
 com\gestionandamios\controller\OlvidoContrasenaServlet.class
 com\gestionandamios\conexion\ConexionDB.class
 com\gestionandamios\dao\DetalleAlquilerDAO.class
