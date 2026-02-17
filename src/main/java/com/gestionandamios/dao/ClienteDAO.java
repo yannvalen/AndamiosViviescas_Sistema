@@ -2,21 +2,16 @@ package com.gestionandamios.dao;
 
 import com.gestionandamios.conexion.ConexionDB;
 import com.gestionandamios.modelo.Cliente;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteDAO {
 
-    // ===================== INSERTAR =====================
     public void insertar(Cliente c) {
-        String sql = "INSERT INTO clientes (nombre, apellido, cedula, telefono, direccion, correo_electronico, fecha_nacimiento, contrasena) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
+        String sql = "INSERT INTO clientes (nombre, apellido, cedula, telefono, direccion, correo_electronico, fecha_nacimiento, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, c.getNombre());
             ps.setString(2, c.getApellido());
             ps.setString(3, c.getCedula());
@@ -25,23 +20,16 @@ public class ClienteDAO {
             ps.setString(6, c.getCorreoElectronico());
             ps.setDate(7, c.getFechaNacimiento());
             ps.setString(8, c.getContrasena());
-
             ps.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    // ===================== LISTAR =====================
     public List<Cliente> listar() {
         List<Cliente> lista = new ArrayList<>();
         String sql = "SELECT * FROM clientes";
-
         try (Connection con = ConexionDB.getConexion();
              Statement st = con.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
-
             while (rs.next()) {
                 Cliente c = new Cliente();
                 c.setIdCliente(rs.getInt("id_cliente"));
@@ -55,21 +43,14 @@ public class ClienteDAO {
                 c.setContrasena(rs.getString("contrasena"));
                 lista.add(c);
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
         return lista;
     }
 
-    // ===================== ACTUALIZAR =====================
     public boolean actualizar(Cliente c) {
-        String sql = "UPDATE clientes SET nombre=?, apellido=?, cedula=?, telefono=?, direccion=?, correo_electronico=?, fecha_nacimiento=?, contrasena=? "
-                   + "WHERE id_cliente=?";
-
+        String sql = "UPDATE clientes SET nombre=?, apellido=?, cedula=?, telefono=?, direccion=?, correo_electronico=?, fecha_nacimiento=?, contrasena=? WHERE id_cliente=?";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, c.getNombre());
             ps.setString(2, c.getApellido());
             ps.setString(3, c.getCedula());
@@ -79,72 +60,49 @@ public class ClienteDAO {
             ps.setDate(7, c.getFechaNacimiento());
             ps.setString(8, c.getContrasena());
             ps.setInt(9, c.getIdCliente());
-
             return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        } catch (SQLException e) { e.printStackTrace(); return false; }
     }
 
-    // ===================== ELIMINAR =====================
     public boolean eliminar(int idCliente) {
         String sql = "DELETE FROM clientes WHERE id_cliente=?";
-
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, idCliente);
-            return ps.executeUpdate() > 0;
-
+            int filas = ps.executeUpdate();
+            return filas > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("ERROR AL ELIMINAR: " + e.getMessage());
             return false;
         }
     }
 
-    // ===================== BUSCAR POR CORREO =====================
-    public Cliente buscarPorCorreo(String correo) {
-        Cliente cliente = null;
-        String sql = "SELECT * FROM clientes WHERE correo_electronico=?";
+    // === METODOS NUEVOS PARA RECUPERACION DE CONTRASEÑA ===
 
+    public Cliente buscarPorCorreo(String correo) {
+        String sql = "SELECT * FROM clientes WHERE correo_electronico = ?";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, correo);
             ResultSet rs = ps.executeQuery();
-
             if (rs.next()) {
-                cliente = new Cliente();
-                cliente.setIdCliente(rs.getInt("id_cliente"));
-                cliente.setNombre(rs.getString("nombre"));
-                cliente.setCorreoElectronico(rs.getString("correo_electronico"));
-                cliente.setContrasena(rs.getString("contrasena"));
+                Cliente c = new Cliente();
+                c.setIdCliente(rs.getInt("id_cliente"));
+                c.setNombre(rs.getString("nombre"));
+                c.setCorreoElectronico(rs.getString("correo_electronico"));
+                return c;
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return cliente;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
     }
 
-    // ===================== ACTUALIZAR CONTRASEÑA =====================
-    public boolean actualizarContrasena(int idCliente, String nuevaContrasena) {
-        String sql = "UPDATE clientes SET contrasena=? WHERE id_cliente=?";
-
+    public boolean actualizarContrasena(int id, String nuevaClave) {
+        String sql = "UPDATE clientes SET contrasena = ? WHERE id_cliente = ?";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, nuevaContrasena);
-            ps.setInt(2, idCliente);
-
+            ps.setString(1, nuevaClave);
+            ps.setInt(2, id);
             return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        } catch (SQLException e) { e.printStackTrace(); return false; }
     }
 }

@@ -56,38 +56,38 @@
             <%-- MÓDULOS EXCLUSIVOS DEL ADMIN --%>
             <% if (isAdmin) { %>
                 
-                <%-- MÓDULO 2: INVENTARIO (Solo Admin) --%>
                 <a href="SeccionesAndamioServlet" class="module-card">
                     <div style="font-size: 50px;">📋</div>
                     <div class="module-title">Inventario</div>
-                    <div style="font-size: 14px; color: #a0aec0;">Control de stock real y precios.</div>
                 </a>
 
-                <%-- MÓDULO 3: PROVEEDORES (Solo Admin) --%>
                 <a href="ProveedorServlet" class="module-card">
                     <div style="font-size: 50px;">🚚</div>
                     <div class="module-title">Proveedores</div>
-                    <div style="font-size: 14px; color: #a0aec0;">Gestión de compras y suministros.</div>
                 </a>
 
-                <%-- MÓDULO 4: UBICACIONES (Solo Admin) --%>
                 <a href="UbicacionServlet" class="module-card">
                     <div style="font-size: 50px;">📍</div>
                     <div class="module-title">Ubicaciones</div>
-                    <div style="font-size: 14px; color: #a0aec0;">Rastreo de activos en campo.</div>
+                </a>
+
+                <%-- MÓDULO CLIENTES: SOLO ADMIN --%>
+                <a href="ClienteServlet" class="module-card">
+                    <div style="font-size: 50px;">👥</div>
+                    <div class="module-title">Clientes</div>
                 </a>
 
             <% } %>
 
-            <%-- MÓDULO 5: PAGOS (Lo ven todos, el cliente ve sus pagos, el admin ve ingresos) --%>
+            <%-- MÓDULO 6: PAGOS (Lo ven todos) --%>
             <a href="PagoServlet" class="module-card">
                 <div style="font-size: 50px;">💰</div>
                 <div class="module-title">Pagos</div>
-                <div style="font-size: 14px; color: #a0aec0;">Control financiero y facturación.</div>
             </a>
             
         </div>
 
+        <%-- BOTÓN DE SALIDA REGRESANDO AL LOGIN ORIGINAL --%>
         <a href="registro_cliente.jsp" class="btn-exit">Cerrar Sesión</a>
     </main>
 </body>

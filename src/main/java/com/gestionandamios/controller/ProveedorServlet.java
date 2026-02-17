@@ -14,7 +14,22 @@ public class ProveedorServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Carga la lista y la envía al JSP
+        
+        String accion = request.getParameter("accion");
+        
+        if ("eliminar".equals(accion)) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            dao.eliminar(id);
+            response.sendRedirect("ProveedorServlet");
+            return;
+        } else if ("editar".equals(accion)) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Proveedor p = dao.buscarPorId(id);
+            request.setAttribute("prov", p);
+            request.getRequestDispatcher("editar_proveedor.jsp").forward(request, response);
+            return;
+        }
+
         request.setAttribute("listaProveedores", dao.listar());
         request.getRequestDispatcher("gestiondeproveedores.jsp").forward(request, response);
     }
@@ -23,15 +38,21 @@ public class ProveedorServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        String idStr = request.getParameter("id_proveedor");
+        
         Proveedor p = new Proveedor();
         p.setNombre(request.getParameter("nombre"));
         p.setRutNit(request.getParameter("rut_nit"));
         p.setContactoPrincipal(request.getParameter("contacto_principal"));
         p.setTelefono(request.getParameter("telefono"));
 
-        dao.insertar(p);
+        if (idStr == null || idStr.isEmpty()) {
+            dao.insertar(p); // Nuevo registro
+        } else {
+            p.setIdProveedor(Integer.parseInt(idStr));
+            dao.actualizar(p); // Actualización
+        }
         
-        // MUY IMPORTANTE: Redirigir al doGet para refrescar la lista
         response.sendRedirect("ProveedorServlet");
     }
 }

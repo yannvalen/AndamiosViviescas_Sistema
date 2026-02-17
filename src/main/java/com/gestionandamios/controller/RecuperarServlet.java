@@ -2,13 +2,10 @@ package com.gestionandamios.controller;
 
 import com.gestionandamios.dao.ClienteDAO;
 import com.gestionandamios.modelo.Cliente;
-import com.gestionandamios.util.EmailService; // Asegúrate de haber creado esta clase
+import com.gestionandamios.util.EmailService;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.Random;
 
@@ -30,18 +27,17 @@ public class RecuperarServlet extends HttpServlet {
             return;
         }
 
-        // 1. Generar código de 6 dígitos
+        // Generar código de 6 dígitos
         String codigo = String.valueOf(100000 + new Random().nextInt(900000));
 
-        // 2. Guardar en sesión para validar después
+        // GUARDAR EN SESIÓN (Fíjate bien en estos nombres)
         HttpSession session = request.getSession();
         session.setAttribute("codigoRecuperacion", codigo);
-        session.setAttribute("clienteRecuperacion", cliente);
+        session.setAttribute("clienteRecuperacion", cliente); // Usamos 'clienteRecuperacion'
 
-        // 3. ENVIAR CORREO REAL AL CLIENTE
+        // Enviar correo
         emailService.enviarCodigo(correo, codigo);
 
-        // 4. Redirigir a la página de verificación
         response.sendRedirect("verificarCodigo.jsp");
     }
 }
