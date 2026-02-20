@@ -2,9 +2,6 @@ package com.gestionandamios.modelo;
 
 import java.sql.Date;
 
-/**
- * Clase que representa la entidad Cliente.
- */
 public class Cliente {
     private int idCliente;
     private String nombre;
@@ -14,9 +11,9 @@ public class Cliente {
     private String direccion;
     private String correoElectronico;
     private Date fechaNacimiento;
-    private String contrasena; // Usamos 'contrasena' sin ñ para evitar errores JDBC
+    private String contrasena; 
+    private String rol; // Nuevo atributo añadido
 
-    // Constructor vacío
     public Cliente() {}
 
     // Getters y Setters
@@ -46,4 +43,7 @@ public class Cliente {
 
     public String getContrasena() { return contrasena; }
     public void setContrasena(String contrasena) { this.contrasena = contrasena; }
+
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
 }

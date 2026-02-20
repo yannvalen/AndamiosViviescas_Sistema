@@ -22,7 +22,7 @@ public class ClienteServlet extends HttpServlet {
             int id = Integer.parseInt(request.getParameter("id"));
             dao.eliminar(id);
             response.sendRedirect("ClienteServlet");
-            return; // IMPORTANTE: Termina la ejecución aquí
+            return; 
         } 
         
         if (accion != null && accion.equals("editar")) {
@@ -39,7 +39,6 @@ public class ClienteServlet extends HttpServlet {
             return;
         }
 
-        // Acción por defecto: Listar
         request.setAttribute("listaClientes", dao.listar());
         request.getRequestDispatcher("clientes.jsp").forward(request, response);
     }
@@ -58,6 +57,14 @@ public class ClienteServlet extends HttpServlet {
         c.setDireccion(request.getParameter("direccion"));
         c.setCorreoElectronico(request.getParameter("correo"));
         c.setContrasena(request.getParameter("contrasena"));
+        
+        // Manejo del ROL para evitar errores en MySQL
+        String rolRecibido = request.getParameter("rol");
+        if (rolRecibido != null && !rolRecibido.isEmpty()) {
+            c.setRol(rolRecibido);
+        } else {
+            c.setRol("CLIENTE"); // Valor por defecto si no se envía en Postman
+        }
 
         String fecha = request.getParameter("fechaNacimiento");
         if (fecha != null && !fecha.isEmpty()) {

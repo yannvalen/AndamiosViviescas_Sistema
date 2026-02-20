@@ -9,7 +9,8 @@ import java.util.List;
 public class ClienteDAO {
 
     public void insertar(Cliente c) {
-        String sql = "INSERT INTO clientes (nombre, apellido, cedula, telefono, direccion, correo_electronico, fecha_nacimiento, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // Se agregó la columna 'rol' a la sentencia SQL
+        String sql = "INSERT INTO clientes (nombre, apellido, cedula, telefono, direccion, correo_electronico, fecha_nacimiento, contrasena, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, c.getNombre());
@@ -20,8 +21,13 @@ public class ClienteDAO {
             ps.setString(6, c.getCorreoElectronico());
             ps.setDate(7, c.getFechaNacimiento());
             ps.setString(8, c.getContrasena());
+            ps.setString(9, c.getRol()); // Se añade el rol para cumplir con la restricción NOT NULL
             ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+            System.out.println("LOG: Cliente insertado correctamente."); 
+        } catch (SQLException e) { 
+            System.out.println("ERROR SQL AL INSERTAR: " + e.getMessage());
+            e.printStackTrace(); 
+        }
     }
 
     public List<Cliente> listar() {
@@ -41,6 +47,7 @@ public class ClienteDAO {
                 c.setCorreoElectronico(rs.getString("correo_electronico"));
                 c.setFechaNacimiento(rs.getDate("fecha_nacimiento"));
                 c.setContrasena(rs.getString("contrasena"));
+                c.setRol(rs.getString("rol")); // Se recupera el rol de la BD
                 lista.add(c);
             }
         } catch (SQLException e) { e.printStackTrace(); }
@@ -48,7 +55,8 @@ public class ClienteDAO {
     }
 
     public boolean actualizar(Cliente c) {
-        String sql = "UPDATE clientes SET nombre=?, apellido=?, cedula=?, telefono=?, direccion=?, correo_electronico=?, fecha_nacimiento=?, contrasena=? WHERE id_cliente=?";
+        // Se incluyó el rol en la actualización para mantener la integridad
+        String sql = "UPDATE clientes SET nombre=?, apellido=?, cedula=?, telefono=?, direccion=?, correo_electronico=?, fecha_nacimiento=?, contrasena=?, rol=? WHERE id_cliente=?";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, c.getNombre());
@@ -59,7 +67,8 @@ public class ClienteDAO {
             ps.setString(6, c.getCorreoElectronico());
             ps.setDate(7, c.getFechaNacimiento());
             ps.setString(8, c.getContrasena());
-            ps.setInt(9, c.getIdCliente());
+            ps.setString(9, c.getRol());
+            ps.setInt(10, c.getIdCliente());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); return false; }
     }
@@ -77,8 +86,6 @@ public class ClienteDAO {
         }
     }
 
-    // === METODOS NUEVOS PARA RECUPERACION DE CONTRASEÑA ===
-
     public Cliente buscarPorCorreo(String correo) {
         String sql = "SELECT * FROM clientes WHERE correo_electronico = ?";
         try (Connection con = ConexionDB.getConexion();
@@ -90,6 +97,7 @@ public class ClienteDAO {
                 c.setIdCliente(rs.getInt("id_cliente"));
                 c.setNombre(rs.getString("nombre"));
                 c.setCorreoElectronico(rs.getString("correo_electronico"));
+                c.setRol(rs.getString("rol"));
                 return c;
             }
         } catch (SQLException e) { e.printStackTrace(); }
