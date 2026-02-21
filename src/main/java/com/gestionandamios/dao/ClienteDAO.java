@@ -9,7 +9,6 @@ import java.util.List;
 public class ClienteDAO {
 
     public void insertar(Cliente c) {
-        // Se agregó la columna 'rol' a la sentencia SQL
         String sql = "INSERT INTO clientes (nombre, apellido, cedula, telefono, direccion, correo_electronico, fecha_nacimiento, contrasena, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -21,9 +20,10 @@ public class ClienteDAO {
             ps.setString(6, c.getCorreoElectronico());
             ps.setDate(7, c.getFechaNacimiento());
             ps.setString(8, c.getContrasena());
-            ps.setString(9, c.getRol()); // Se añade el rol para cumplir con la restricción NOT NULL
-            ps.executeUpdate();
-            System.out.println("LOG: Cliente insertado correctamente."); 
+            ps.setString(9, c.getRol());
+            
+            int filas = ps.executeUpdate();
+            System.out.println("LOG DAO: Filas insertadas -> " + filas);
         } catch (SQLException e) { 
             System.out.println("ERROR SQL AL INSERTAR: " + e.getMessage());
             e.printStackTrace(); 
@@ -47,7 +47,7 @@ public class ClienteDAO {
                 c.setCorreoElectronico(rs.getString("correo_electronico"));
                 c.setFechaNacimiento(rs.getDate("fecha_nacimiento"));
                 c.setContrasena(rs.getString("contrasena"));
-                c.setRol(rs.getString("rol")); // Se recupera el rol de la BD
+                c.setRol(rs.getString("rol"));
                 lista.add(c);
             }
         } catch (SQLException e) { e.printStackTrace(); }
@@ -55,7 +55,6 @@ public class ClienteDAO {
     }
 
     public boolean actualizar(Cliente c) {
-        // Se incluyó el rol en la actualización para mantener la integridad
         String sql = "UPDATE clientes SET nombre=?, apellido=?, cedula=?, telefono=?, direccion=?, correo_electronico=?, fecha_nacimiento=?, contrasena=?, rol=? WHERE id_cliente=?";
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -78,14 +77,12 @@ public class ClienteDAO {
         try (Connection con = ConexionDB.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, idCliente);
-            int filas = ps.executeUpdate();
-            return filas > 0;
-        } catch (SQLException e) {
-            System.out.println("ERROR AL ELIMINAR: " + e.getMessage());
-            return false;
-        }
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); return false; }
     }
 
+    // --- MÉTODOS NECESARIOS PARA RECUPERAR CONTRASEÑA ---
+    
     public Cliente buscarPorCorreo(String correo) {
         String sql = "SELECT * FROM clientes WHERE correo_electronico = ?";
         try (Connection con = ConexionDB.getConexion();

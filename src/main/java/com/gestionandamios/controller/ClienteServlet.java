@@ -18,6 +18,7 @@ public class ClienteServlet extends HttpServlet {
         
         String accion = request.getParameter("accion");
         
+        // --- ACCIÓN ELIMINAR ---
         if (accion != null && accion.equals("eliminar")) {
             int id = Integer.parseInt(request.getParameter("id"));
             dao.eliminar(id);
@@ -25,6 +26,7 @@ public class ClienteServlet extends HttpServlet {
             return; 
         } 
         
+        // --- ACCIÓN EDITAR (Cargar datos en el formulario) ---
         if (accion != null && accion.equals("editar")) {
             int id = Integer.parseInt(request.getParameter("id"));
             Cliente clienteExistente = null;
@@ -39,6 +41,7 @@ public class ClienteServlet extends HttpServlet {
             return;
         }
 
+        // --- ACCIÓN POR DEFECTO: LISTAR ---
         request.setAttribute("listaClientes", dao.listar());
         request.getRequestDispatcher("clientes.jsp").forward(request, response);
     }
@@ -48,8 +51,8 @@ public class ClienteServlet extends HttpServlet {
             throws ServletException, IOException {
 
         Cliente c = new Cliente();
-        String idStr = request.getParameter("id_cliente");
         
+        // 1. Captura de parámetros desde el formulario o Postman
         c.setNombre(request.getParameter("nombre"));
         c.setApellido(request.getParameter("apellido"));
         c.setCedula(request.getParameter("cedula"));
@@ -57,27 +60,46 @@ public class ClienteServlet extends HttpServlet {
         c.setDireccion(request.getParameter("direccion"));
         c.setCorreoElectronico(request.getParameter("correo"));
         c.setContrasena(request.getParameter("contrasena"));
-        
-        // Manejo del ROL para evitar errores en MySQL
+
+        // 2. Manejo de la Fecha de Nacimiento (Evita errores si llega vacío)
+        String fecha = request.getParameter("fechaNacimiento");
+        if (fecha != null && !fecha.isEmpty()) {
+            try {
+                c.setFechaNacimiento(Date.valueOf(fecha));
+            } catch (IllegalArgumentException e) {
+                System.out.println("ERROR: Formato de fecha inválido: " + fecha);
+            }
+        }
+
+        // 3. Manejo del ROL (Garantiza que no sea NULL para MySQL)
         String rolRecibido = request.getParameter("rol");
         if (rolRecibido != null && !rolRecibido.isEmpty()) {
             c.setRol(rolRecibido);
         } else {
-            c.setRol("CLIENTE"); // Valor por defecto si no se envía en Postman
+            c.setRol("CLIENTE"); // Valor por defecto obligatorio
         }
 
-        String fecha = request.getParameter("fechaNacimiento");
-        if (fecha != null && !fecha.isEmpty()) {
-            c.setFechaNacimiento(Date.valueOf(fecha));
-        }
-
-        if (idStr != null && !idStr.isEmpty()) {
-            c.setIdCliente(Integer.parseInt(idStr));
-            dao.actualizar(c);
-        } else {
+        // 4. Lógica de Decisión: ¿Es un nuevo registro o una actualización?
+        String idStr = request.getParameter("id_cliente");
+        
+        if (idStr == null || idStr.trim().isEmpty()) {
+            // Si el ID no existe o está vacío, es un INSERT
+            System.out.println("LOG SERVLET: Iniciando INSERTAR para " + c.getNombre());
             dao.insertar(c);
+        } else {
+            // Si el ID tiene valor, es un UPDATE
+            try {
+                int id = Integer.parseInt(idStr);
+                c.setIdCliente(id);
+                System.out.println("LOG SERVLET: Iniciando ACTUALIZAR para ID: " + id);
+                dao.actualizar(c);
+            } catch (NumberFormatException e) {
+                System.out.println("LOG SERVLET: ID inválido, intentando insertar como nuevo.");
+                dao.insertar(c);
+            }
         }
 
+        // 5. Redirección al listado
         response.sendRedirect("ClienteServlet");
     }
 }
