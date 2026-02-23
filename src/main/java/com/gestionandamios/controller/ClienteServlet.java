@@ -8,13 +8,18 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.sql.Date;
+import java.util.List;
 
 @WebServlet("/ClienteServlet")
 public class ClienteServlet extends HttpServlet {
 
     private ClienteDAO dao = new ClienteDAO();
 
+    // ==============================
+    // REGISTRAR CLIENTE (POST)
+    // ==============================
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -27,9 +32,7 @@ public class ClienteServlet extends HttpServlet {
 
         try {
 
-            // ===============================
-            // SI VIENE DE POSTMAN (JSON)
-            // ===============================
+            // ===== SI VIENE DE POSTMAN (JSON) =====
             if (contentType != null && contentType.contains("application/json")) {
 
                 StringBuilder sb = new StringBuilder();
@@ -75,12 +78,8 @@ public class ClienteServlet extends HttpServlet {
                     }
                 }
 
-            } 
-            // ===============================
-            // SI VIENE DEL JSP (FORM NORMAL)
-            // ===============================
-            else {
-
+            } else {
+                // ===== VIENE DEL JSP (FORMULARIO) =====
                 cliente.setNombre(request.getParameter("nombre"));
                 cliente.setApellido(request.getParameter("apellido"));
                 cliente.setCedula(request.getParameter("cedula"));
@@ -88,7 +87,12 @@ public class ClienteServlet extends HttpServlet {
                 cliente.setTelefono(request.getParameter("telefono"));
                 cliente.setDireccion(request.getParameter("direccion"));
                 cliente.setContrasena(request.getParameter("contrasena"));
-                cliente.setFechaNacimiento(Date.valueOf(request.getParameter("fechaNacimiento")));
+
+                String fecha = request.getParameter("fechaNacimiento");
+                if (fecha != null && !fecha.isEmpty()) {
+                    cliente.setFechaNacimiento(Date.valueOf(fecha));
+                }
+
                 cliente.setRol("CLIENTE");
             }
 
@@ -102,12 +106,59 @@ public class ClienteServlet extends HttpServlet {
         }
     }
 
-    // Para evitar error 405 si abres en navegador
+    // ==============================
+    // LISTAR CLIENTES (GET)
+    // ==============================
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"mensaje\":\"Usa POST para registrar cliente\"}");
+
+        List<Cliente> lista = dao.listar();
+        PrintWriter out = response.getWriter();
+
+        out.print("[");
+
+        for (int i = 0; i < lista.size(); i++) {
+            Cliente c = lista.get(i);
+
+            out.print("{");
+            out.print("\"id\":" + c.getIdCliente() + ",");
+            out.print("\"nombre\":\"" + c.getNombre() + "\",");
+            out.print("\"correo\":\"" + c.getCorreoElectronico() + "\"");
+            out.print("}");
+
+            if (i < lista.size() - 1) {
+                out.print(",");
+            }
+        }
+
+        out.print("]");
+    }
+
+    // ==============================
+    // ELIMINAR CLIENTE (DELETE)
+    // ==============================
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        response.setContentType("application/json;charset=UTF-8");
+
+        String id = request.getParameter("id");
+
+        if (id == null) {
+            response.getWriter().write("{\"error\":\"Debe enviar id\"}");
+            return;
+        }
+
+        boolean eliminado = dao.eliminar(Integer.parseInt(id));
+
+        if (eliminado) {
+            response.getWriter().write("{\"mensaje\":\"Cliente eliminado correctamente\"}");
+        } else {
+            response.getWriter().write("{\"error\":\"No se pudo eliminar\"}");
+        }
     }
 }
